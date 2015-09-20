@@ -34,8 +34,15 @@ func main() {
 }
 
 func handleRequest(conn net.Conn) {
+  defer conn.Close()
+
 	payLoad, _ := readPayload(conn)
-	command := cache.ExtractCommand(payLoad)
+	command, err := cache.ExtractCommand(payLoad)
+
+  if err != nil {
+    conn.Write([]byte(err.Error()));
+    return
+  }
 
 	res, err := command.Handle()
 
@@ -44,11 +51,10 @@ func handleRequest(conn net.Conn) {
 	} else {
 		conn.Write([]byte(res));
 	}
-  conn.Close()
 }
 
 func readPayload(conn net.Conn) (string, error) {
-  buffer := make([]byte, 1024)
+  buffer := make([]byte, 1024) // a slice with size and capacity of 1024
 
   len, err := conn.Read(buffer)
 

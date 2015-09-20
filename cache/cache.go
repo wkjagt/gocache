@@ -26,8 +26,8 @@ func (c *Command) Handle() (string, error) {
 	return "", fmt.Errorf("Unknow command: '%s'", c.name)
 }
 
-func ExtractCommand(payLoad string) Command {
+func ExtractCommand(payLoad string) (Command, error) {
 	commandParts := strings.Split(payLoad, " ")
 
-	return Command{commandParts[0], commandParts[1:]}
+	return Command{commandParts[0], commandParts[1:]}, nil
 }
