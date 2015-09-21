@@ -1,65 +1,65 @@
 package main
 
 import (
-    "fmt"
-    "net"
-    "os"
-    "github.com/wkjagt/gocache/cache"
-)
+	"fmt"
+	"net"
+	"os"
 
-const (
-    connHost = "localhost"
-    connPort = "3333"
-    connType = "tcp"
+	"github.com/wkjagt/gocache/cache"
 )
 
 func main() {
-    listener, err := net.Listen(connType, fmt.Sprintf("%s:%s", connHost, connPort))
-    if err != nil {
-        fmt.Println("Error listening:", err.Error())
-        os.Exit(1)
-    }
-    defer listener.Close()
+	if len(os.Args) != 2 {
+		fmt.Println("Missing arguments")
+		os.Exit(1)
+	}
 
-    fmt.Println("Listening on " + connHost + ":" + connPort)
+	listener, err := net.Listen("tcp", os.Args[1])
+	if err != nil {
+		fmt.Println("Error listening:", err.Error())
+		os.Exit(1)
+	}
+	defer listener.Close()
 
-    for {
-        conn, err := listener.Accept()
-        if err != nil {
-            fmt.Println("Error accepting: ", err.Error())
-            os.Exit(1)
-        }
-        go handleRequest(conn)
-    }
+	fmt.Println("Listening on " + os.Args[1])
+
+	for {
+		conn, err := listener.Accept()
+		if err != nil {
+			fmt.Println("Error accepting: ", err.Error())
+			os.Exit(1)
+		}
+		go handleRequest(conn)
+	}
 }
 
 func handleRequest(conn net.Conn) {
-  defer conn.Close()
+	defer conn.Close()
 
 	payLoad, _ := readPayload(conn)
 	command, err := cache.ExtractCommand(payLoad)
 
-  if err != nil {
-    conn.Write([]byte(err.Error()));
-    return
-  }
+	if err != nil {
+		conn.Write([]byte(err.Error()))
+		return
+	}
 
 	res, err := command.Handle()
 
 	if err != nil {
-		conn.Write([]byte(err.Error()));
+		conn.Write([]byte(err.Error()))
 	} else {
-		conn.Write([]byte(res));
+		conn.Write([]byte(res))
 	}
 }
 
 func readPayload(conn net.Conn) (string, error) {
-  buffer := make([]byte, 1024) // a slice with size and capacity of 1024
+	buffer := make([]byte, 1024) // a slice with size and capacity of 1024
 
-  len, err := conn.Read(buffer)
+	len, err := conn.Read(buffer)
 
-  if err != nil {
-    return "", fmt.Errorf("Error reading:%s", err.Error())
-  }
+	if err != nil {
+		return "", fmt.Errorf("Error reading:%s", err.Error())
+	}
 	return string(buffer[:len-1]), nil
 }

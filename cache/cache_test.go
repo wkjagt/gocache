@@ -1,7 +1,6 @@
 package cache
 import (
   "testing"
-  // "fmt"
 )
 
 func TestExtractSetCommand(t *testing.T) {

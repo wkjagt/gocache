@@ -1,18 +1,25 @@
 package cache
 
 import (
-    "fmt"
-		"strings"
+	"fmt"
+	"strings"
+	"sync"
 )
 
-var memoryMap = make(map[string]string)
+var (
+	lock      sync.Mutex
+	memoryMap = make(map[string]string)
+)
 
 type Command struct {
-  name string
+	name   string
 	params []string
 }
 
 func (c *Command) Handle() (string, error) {
+	lock.Lock()
+	defer lock.Unlock()
+
 	switch c.name {
 	case "SET":
 		memoryMap[c.params[0]] = c.params[1]
